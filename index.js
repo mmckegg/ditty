@@ -13,8 +13,10 @@ module.exports = function(){
   var ditty = Through(function(schedule){
     var events = getRange(schedule.from, schedule.to)
     events.forEach(function(event){
-      var time = schedule.time + (event.delta*schedule.beatTime)
+      var time = schedule.time + (event.delta*schedule.beatDuration)
       ditty.queue({
+        key: event.key,
+        action: event.action,
         data: event.data, 
         time: time, 
         position: schedule.from+event.delta
@@ -69,7 +71,7 @@ module.exports = function(){
     if (turnOffNotes.length){
       turnOffNotes.forEach(function(note){
         onNotes[note.key] = null
-        events.push({data: note.off, delta: 0})
+        events.push({key: note.key, data: note.data, action: 'off', delta: 0})
       })
       turnOffNotes = []
     }
@@ -78,7 +80,7 @@ module.exports = function(){
       var position = getAbsolutePosition(note.position, start, playback.length)
       var endPosition = getAbsolutePosition(note.position + note.length, start, playback.length)
       if (position>=start && position<end){
-        events.push({data: note.on, delta: position-start})
+        events.push({key: note.key, data: note.data, delta: position-start, action: 'on'})
         onNotes.push(note)
       }
     })
@@ -87,7 +89,7 @@ module.exports = function(){
       var note = onNotes[i]
       var endPosition = getAbsolutePosition(note.position + note.length, start, playback.length)
       if (endPosition>=start && endPosition<end){
-        events.push({data: note.off, delta: endPosition-start})
+        events.push({key: note.key, data: note.data, delta: endPosition-start, action: 'off'})
         onNotes.splice(i, 1)
       }
     }

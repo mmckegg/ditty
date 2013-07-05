@@ -1,7 +1,7 @@
 {
   "name": "ditty",
   "version": "0.0.0",
-  "description": "Stream in time from bopper and out comes a wee ditty. For midi loop playback.",
+  "description": "Schedule playback for a loop sequence of Web Audio events (e.g. midi notes) using bopper clock source.",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
@@ -17,6 +17,9 @@
   ],
   "dependencies": {
     "through": "~2.3.4"
+  },
+  "devDependencies": {
+    "bopper": "~0.1"
   },
   "author": "Matt McKegg",
   "license": "MIT"
