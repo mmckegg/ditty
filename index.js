@@ -7,6 +7,9 @@ module.exports = function(){
   var onNotes = []
   var turnOffNotes = []
 
+  var undos = []
+  var redos = []
+
   var ditty = Through(function(schedule){
     var events = getRange(schedule.from, schedule.to)
     events.forEach(function(event){
@@ -31,9 +34,20 @@ module.exports = function(){
     ditty.setNotes([])
   }
 
+  ditty.undo = function(){
+    redos.push(playback)
+    playback = undos.pop()
+  }
+
+  ditty.redo = function(){
+    undos.push(playback)
+    playback = redos.pop()
+  }
+
   ditty.setNotes = function(notes, length){
     notes = notes || []
     turnOffUnused(notes)
+    undos.push(playback)
     playback = {notes: notes, length: length || playback.length}
   }
 
@@ -77,10 +91,6 @@ module.exports = function(){
         onNotes.splice(i, 1)
       }
     }
-
-    onNotes.forEach(function(note){
-
-    })
 
     return events
   }
