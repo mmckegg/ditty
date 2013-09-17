@@ -1,7 +1,7 @@
 ditty
 ===
 
-Schedule playback for a loop sequence of Web Audio events (e.g. midi notes) using [bopper](https://github.com/mmckegg/bopper) clock source.
+Schedule Web Audio events for a midi loop sequence using [bopper](https://github.com/mmckegg/bopper) clock source.
 
 ## Install
 
@@ -20,49 +20,56 @@ var bopper = require('bopper')(audioContext)
 bopper.pipe(ditty).on('data', function(event){
   // event: key, data, action, time, position
 
-  if (event.action == 'on') noteOn(event.time, event.key)
-  if (event.action == 'off') noteOff(event.time, event.key)
+  if (event.data[2]){
+    noteOn(event.time, event.data[1], event.data[2])
+  } else {
+    noteOff(event.time, event.data[1])
+  }
+
 })
 
-ditty.setNotes([
-  {key: 'C4', position: 0.0, length: 0.9, data: 'some value'},
-  {key: 'C4', position: 1.0, length: 0.9},
-  {key: 'F4', position: 2.0, length: 0.9},
-  {key: 'F4', position: 3.0, length: 0.9},
-  {key: 'G4', position: 4.0, length: 0.9},
-  {key: 'G4', position: 5.0, length: 0.4},
-  {key: 'F4', position: 5.5, length: 0.9},
-  {key: 'F4', position: 6.5, length: 0.4},
-  {key: 'F4', position: 7.0, length: 0.4},
-  {key: 'F4', position: 7.5, length: 0.4} 
-], 8)
+var C = 60, F = 65, G = 67, A = 69
 
-bopper.setTempo(120)
-bopper.start()
+
+ditty.setNotes([
+  [144, C, 100, 0.0, 0.9],
+  [144, C, 100, 1.0, 0.9],
+  [144, F, 100, 2.0, 0.9],
+  [144, F, 100, 3.0, 0.9],
+  [144, G, 100, 4.0, 0.9],
+  [144, G, 100, 5.0, 0.4],
+  [144, F, 100, 5.5, 0.9],
+  [144, F, 100, 6.5, 0.4],
+  [144, F, 100, 7.0, 0.4],
+  [144, F, 100, 7.5, 0.4]
+], 8)
 
 
 // simple oscillating synth
-var frequencies = {
-  'C4': 261.626,
-  'F4': 349.228,
-  'G4': 391.995,
-  'A4': 440
-}
 var onNotes = {}
-function noteOn(time, id){
+function noteOn(time, id, velocity){
+  console.log('on', time, id)
   noteOff(time, id) // choke existing note if any
   var oscillator = audioContext.createOscillator()
   oscillator.connect(audioContext.destination)
-  oscillator.frequency.value = frequencies[id]
+  oscillator.frequency.value = getFrequency(id)
   oscillator.type = 2
   oscillator.start(time)
   onNotes[id] = oscillator
 }
 function noteOff(time, id){
   if (onNotes[id]){
+    console.log('off', time, id)
     onNotes[id].stop(time)
     onNotes[id] = null
   }
 }
+function getFrequency(id){
+  return 440 * Math.pow(2, (id - 69.0) / 12.0)
+}
 
+bopper.setTempo(120)
+bopper.start()
 ```
+
+To run the example `npm install -g beefy` then `beefy example.js` and navigate to `http://localhost:9966/`

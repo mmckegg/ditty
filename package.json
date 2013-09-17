@@ -1,7 +1,7 @@
 {
   "name": "ditty",
   "version": "0.1.0",
-  "description": "Schedule playback for a loop sequence of Web Audio events (e.g. midi notes) using bopper clock source.",
+  "description": "Schedule Web Audio events for a midi loop sequence using bopper clock source.",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"

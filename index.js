@@ -7,19 +7,13 @@ module.exports = function(){
   var onNotes = []
   var turnOffNotes = []
 
-  var undos = []
-  var redos = []
-
   var ditty = Through(function(schedule){
     var events = getRange(schedule.from, schedule.to)
     events.forEach(function(event){
       var time = schedule.time + (event.delta*schedule.beatDuration)
       ditty.queue({
-        key: event.key,
-        action: event.action,
-        data: event.data, 
-        time: time, 
-        position: schedule.from+event.delta
+        time: time,
+        data: noteWithPosition(event.data, schedule.from+event.delta)
       })
     })
   })
@@ -36,21 +30,11 @@ module.exports = function(){
     ditty.setNotes([])
   }
 
-  ditty.undo = function(){
-    redos.push(playback)
-    playback = undos.pop()
-  }
-
-  ditty.redo = function(){
-    undos.push(playback)
-    playback = redos.pop()
-  }
-
   ditty.setNotes = function(notes, length){
     notes = notes || []
     turnOffUnused(notes)
-    undos.push(playback)
     playback = {notes: notes, length: length || playback.length}
+    ditty.emit('change')
   }
 
   ditty.turnOffAllNotes = function(){
@@ -66,41 +50,51 @@ module.exports = function(){
   }
 
   function getRange(start, end){
-    var events = []
+    var notes = []
 
     if (turnOffNotes.length){
       turnOffNotes.forEach(function(note){
-        onNotes[note.key] = null
-        events.push({key: note.key, data: note.data, action: 'off', delta: 0})
+        notes.push({delta: 0, data: offNote(note)})
       })
       turnOffNotes = []
     }
 
     playback.notes.forEach(function(note){
-      var position = getAbsolutePosition(note.position, start, playback.length)
-      var endPosition = getAbsolutePosition(note.position + note.length, start, playback.length)
-      if (position>=start && position<end){
-        events.push({key: note.key, data: note.data, delta: position-start, action: 'on'})
+      var position = getAbsolutePosition(note[3], start, playback.length)
+      //var endPosition = getAbsolutePosition(note[3] + note[4], start, playback.length)
+      if (note[4] && position>=start && position<end){
+        notes.push({delta: position-start, data: onNote(note)})
         onNotes.push(note)
       }
     })
 
     for (var i=onNotes.length-1;i>=0;i--){
       var note = onNotes[i]
-      var endPosition = getAbsolutePosition(note.position + note.length, start, playback.length)
+      var endPosition = getAbsolutePosition(note[3] + note[4], start, playback.length)
       if (endPosition>=start && endPosition<end){
-        events.push({key: note.key, data: note.data, delta: endPosition-start, action: 'off'})
+        notes.push({delta: endPosition-start, data: offNote(note)})
         onNotes.splice(i, 1)
       }
     }
 
-    return events
+    return notes
   }
 
 
   return ditty
 }
 
+function onNote(note){
+  return [note[0], note[1], note[2], note[3]]
+}
+
+function offNote(note){
+  return [note[0], note[1], 0, note[3] + note[4]]
+}
+
+function noteWithPosition(note, position){
+  return [note[0], note[1], note[2], position]
+}
 
 function getAbsolutePosition(pos, start, length){
   var micro = start % length
