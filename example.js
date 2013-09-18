@@ -1,8 +1,12 @@
-var audioContext = new webkitAudioContext()
-var bopper = require('bopper')(audioContext)
-var ditty = require('./')()
+var Ditty = require('ditty')
+var Bopper = require('bopper')
 
-bopper.pipe(ditty).on('data', function(event){
+var audioContext = new webkitAudioContext()
+var bopper = Bopper(audioContext)
+
+var ditty = Ditty(bopper)
+
+ditty.on('data', function(event){
   // event: key, data, action, time, position
 
   if (event.data[2]){

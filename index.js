@@ -1,13 +1,13 @@
 var Through = require('through')
 
-module.exports = function(){
+module.exports = function(clock){
 
   var playback = {notes: [], length: 8}
 
   var onNotes = []
   var turnOffNotes = []
 
-  var ditty = Through(function(schedule){
+  clock.on('data', function(schedule){
     var events = getRange(schedule.from, schedule.to)
     events.forEach(function(event){
       var time = schedule.time + (event.delta*schedule.beatDuration)
@@ -18,19 +18,19 @@ module.exports = function(){
     })
   })
 
-  ditty.getNotes = function(){
-    return playback.notes
-  }
+  var ditty = Through(function(data){
+    ditty.setPlayback(data.notes, data.length)
+  })
 
-  ditty.getLength = function(){
-    return playback.length
+  ditty.getPlayback = function(){
+    return playback
   }
 
   ditty.clear = function(){
-    ditty.setNotes([])
+    ditty.setPlayback([])
   }
 
-  ditty.setNotes = function(notes, length){
+  ditty.setPlayback = function(notes, length){
     notes = notes || []
     turnOffUnused(notes)
     playback = {notes: notes, length: length || playback.length}
