@@ -63,7 +63,7 @@ module.exports = function(clock){
       var position = getAbsolutePosition(note[3], start, playback.length)
       //var endPosition = getAbsolutePosition(note[3] + note[4], start, playback.length)
       if (note[4] && position>=start && position<end){
-        notes.push({delta: position-start, data: onNote(note)})
+        notes.push({delta: position-start, data: note})
         onNotes.push(note)
       }
     })
@@ -84,9 +84,9 @@ module.exports = function(clock){
   return ditty
 }
 
-function onNote(note){
-  return [note[0], note[1], note[2], note[3]]
-}
+//function onNote(note){
+//  return [note[0], note[1], note[2], note[3]]
+//}
 
 function offNote(note){
   return [note[0], note[1], 0, note[3] + note[4]]
