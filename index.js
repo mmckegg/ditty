@@ -24,8 +24,8 @@ module.exports = function(clock){
 
     var notes = []
 
-    offNotes = offNotes.filter(function(note){
-      if (inRange(note, schedule.from, schedule.to, playback.length)){
+    offNotes.filter(function(note){
+      if (note[3]>=schedule.from && note[3]<schedule.to){
         notes.push(note)
       } else {
         return true
@@ -33,10 +33,19 @@ module.exports = function(clock){
     })
 
     playback.notes.forEach(function(note){
-      if (inRange(note, schedule.from, schedule.to, playback.length)){
-        offNotes.push(offNote(note))
+      var position = getAbsolutePosition(note[3], schedule.from, playback.length)
+
+      if (position>=schedule.from && position<schedule.to){        
         notes.push(note)
+        offNotes.push(offNote(note, position+note[4]))
       }
+
+    })
+
+    offNotes = offNotes.filter(function(note){
+      return !notes.some(function(n){
+        return note[0] == n[0] && note[1] == note[1] && note[2]
+      })
     })
 
 
@@ -66,7 +75,7 @@ module.exports = function(clock){
   ditty.setPlayback = function(notes, length){
     notes = notes || []
     playback = {notes: notes, length: length || playback.length}
-    turnOffUnused()
+    //turnOffUnused()
     ditty.emit('change')
   }
 
@@ -107,8 +116,8 @@ function compareNotes(a,b){
   return a[3]-b[3] || a[2]-b[2]
 }
 
-function offNote(note){
-  return [note[0], note[1], 0, note[3] + note[4]]
+function offNote(note, position){
+  return [note[0], note[1], 0, position]
 }
 
 function noteWithPosition(note, position){
