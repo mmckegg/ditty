@@ -19,7 +19,7 @@
     "through": "~2.3.4"
   },
   "devDependencies": {
-    "bopper": "~0.1"
+    "bopper": "~0.2"
   },
   "author": "Matt McKegg",
   "license": "MIT"

@@ -24,7 +24,7 @@ module.exports = function(clock){
 
     var notes = []
 
-    offNotes.filter(function(note){
+    offNotes = offNotes.filter(function(note){
       if (note[3]>=schedule.from && note[3]<schedule.to){
         notes.push(note)
       } else {
@@ -34,27 +34,22 @@ module.exports = function(clock){
 
     playback.notes.forEach(function(note){
       var position = getAbsolutePosition(note[3], schedule.from, playback.length)
-
       if (position>=schedule.from && position<schedule.to){        
-        notes.push(note)
-        offNotes.push(offNote(note, position+note[4]))
+        notes.push(noteWithPosition(note, position))
+        var offNote = getOffNote(note, position+note[4])
+        if (offNote[3]<schedule.to){
+          notes.push(offNote)
+        } else {
+          offNotes.push(offNote)
+        }
       }
-
     })
-
-    offNotes = offNotes.filter(function(note){
-      return !notes.some(function(n){
-        return note[0] == n[0] && note[1] == note[1] && note[2]
-      })
-    })
-
 
     notes.sort(compareNotes).forEach(function(note){
-      var position = getAbsolutePosition(note[3], schedule.from, playback.length)
-      var delta = position - schedule.from
+      var delta = note[3] - schedule.from
       ditty.queue({
         time: schedule.time + (delta*schedule.beatDuration),
-        data: noteWithPosition(note, schedule.from+delta)
+        data: note 
       })
     })
 
@@ -75,7 +70,7 @@ module.exports = function(clock){
   ditty.setPlayback = function(notes, length){
     notes = notes || []
     playback = {notes: notes, length: length || playback.length}
-    //turnOffUnused()
+    turnOffUnused()
     ditty.emit('change')
   }
 
@@ -103,10 +98,6 @@ module.exports = function(clock){
   return ditty
 }
 
-//function onNote(note){
-//  return [note[0], note[1], note[2], note[3]]
-//}
-
 function inRange(note, from, to, length){
   var position = getAbsolutePosition(note[3], from, length)
   return (position>=from && position<to)
@@ -116,7 +107,7 @@ function compareNotes(a,b){
   return a[3]-b[3] || a[2]-b[2]
 }
 
-function offNote(note, position){
+function getOffNote(note, position){
   return [note[0], note[1], 0, position]
 }
 
