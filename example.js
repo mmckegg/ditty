@@ -1,4 +1,4 @@
-var Ditty = require('ditty')
+var Ditty = require('./')
 var Bopper = require('bopper')
 
 var audioContext = new webkitAudioContext()
@@ -20,7 +20,7 @@ ditty.on('data', function(event){
 var C = 60, F = 65, G = 67, A = 69
 
 
-ditty.setNotes([
+ditty.setPlayback([
   [144, C, 100, 0.0, 0.9],
   [144, C, 100, 1.0, 0.9],
   [144, F, 100, 2.0, 0.9],
@@ -33,6 +33,10 @@ ditty.setNotes([
   [144, F, 100, 7.5, 0.4]
 ], 8)
 
+// mixer
+var output = audioContext.createGain()
+output.gain.value = 0.5
+output.connect(audioContext.destination)
 
 // simple oscillating synth
 var onNotes = {}
@@ -40,7 +44,7 @@ function noteOn(time, id, velocity){
   console.log('on', time, id)
   noteOff(time, id) // choke existing note if any
   var oscillator = audioContext.createOscillator()
-  oscillator.connect(audioContext.destination)
+  oscillator.connect(output)
   oscillator.frequency.value = getFrequency(id)
   oscillator.type = 2
   oscillator.start(time)
