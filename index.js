@@ -70,7 +70,7 @@ module.exports = function(clock){
   ditty.setPlayback = function(notes, length){
     notes = notes || []
     playback = {notes: notes, length: length || playback.length}
-    turnOffUnused()
+    //turnOffUnused()
     ditty.emit('change')
   }
 
