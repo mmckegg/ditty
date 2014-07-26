@@ -1,7 +1,7 @@
 var Ditty = require('./')
 var Bopper = require('bopper')
 
-var audioContext = new webkitAudioContext()
+var audioContext = new AudioContext()
 var bopper = Bopper(audioContext)
 
 var ditty = Ditty(bopper)
