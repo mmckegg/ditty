@@ -9,6 +9,8 @@ module.exports = function(clock){
 
   var immediateNotes = []
 
+  var offset = 0
+
 
   clock.on('data', function(schedule){
 
@@ -33,7 +35,7 @@ module.exports = function(clock){
     })
 
     playback.notes.forEach(function(note){
-      var position = getAbsolutePosition(note[3], schedule.from, playback.length)
+      var position = getAbsolutePosition(note[3] + offset, schedule.from, playback.length)
       if (position>=schedule.from && position<schedule.to){        
         notes.push(noteWithPosition(note, position))
         var offNote = getOffNote(note, position+note[4])
@@ -58,6 +60,18 @@ module.exports = function(clock){
   var ditty = Through(function(data){
     ditty.setPlayback(data.notes, data.length)
   })
+
+  ditty.setOffset = function(value){
+    value = parseFloat(value) || 0
+    if (offset !== value){
+      offset = value
+      ditty.emit('offset', value)
+    }
+  }
+
+  ditty.getOffset = function(){
+    return offset
+  }
 
   ditty.getPlayback = function(){
     return playback
