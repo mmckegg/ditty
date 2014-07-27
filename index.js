@@ -35,7 +35,7 @@ module.exports = function(clock){
     })
 
     playback.notes.forEach(function(note){
-      var position = getAbsolutePosition(note[3] + offset, schedule.from, playback.length)
+      var position = getAbsolutePosition(note[3], schedule.from+offset, playback.length) - offset
       if (position>=schedule.from && position<schedule.to){        
         notes.push(noteWithPosition(note, position))
         var offNote = getOffNote(note, position+note[4])
