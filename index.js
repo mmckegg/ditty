@@ -73,7 +73,7 @@ proto._transform = function(obj){
 
   for (var i=queue.length-1;i>=0;i--){
     var item = queue[i]
-    if (item.position >= from && item.position < to){
+    if (to > item.position){
       var delta = (item.position - from) * beatDuration
       item.time = time + delta
       queue.splice(i, 1)
