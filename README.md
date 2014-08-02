@@ -1,81 +1,84 @@
 ditty
 ===
 
-Schedule Web Audio events for a midi loop sequence using [bopper](https://github.com/mmckegg/bopper) clock source.
+Schedule a looped sequence of [Web Audio](https://developer.mozilla.org/en-US/docs/Web/API/Web_Audio_API) events using [bopper](https://github.com/mmckegg/bopper) clock source.
 
-## Install
+**BREAKING CHANGES:** The API has changed significantly in the version 2 release. Now supports multiple loop channels with differing lengths.
+
+## Install via [npm](https://npmjs.org/packages/ditty)
 
 ```bash
 $ npm install ditty
 ```
 
-## Example
+## API
 
-```js
+```
 var Ditty = require('ditty')
-var Bopper = require('bopper')
-
-var audioContext = new AudioContext()
-var bopper = Bopper(audioContext)
-
-var ditty = Ditty(bopper)
-
-ditty.on('data', function(event){
-  // event: key, data, action, time, position
-
-  if (event.data[2]){
-    noteOn(event.time, event.data[1], event.data[2])
-  } else {
-    noteOff(event.time, event.data[1])
-  }
-
-})
-
-var C = 60, F = 65, G = 67, A = 69
-
-ditty.setPlayback([
-  [144, C, 100, 0.0, 0.9],
-  [144, C, 100, 1.0, 0.9],
-  [144, F, 100, 2.0, 0.9],
-  [144, F, 100, 3.0, 0.9],
-  [144, G, 100, 4.0, 0.9],
-  [144, G, 100, 5.0, 0.4],
-  [144, F, 100, 5.5, 0.9],
-  [144, F, 100, 6.5, 0.4],
-  [144, F, 100, 7.0, 0.4],
-  [144, F, 100, 7.5, 0.4]
-], 8)
-
-// mixer
-var output = audioContext.createGain()
-output.gain.value = 0.5
-output.connect(audioContext.destination)
-
-// simple oscillating synth
-var onNotes = {}
-function noteOn(time, id, velocity){
-  console.log('on', time, id)
-  noteOff(time, id) // choke existing note if any
-  var oscillator = audioContext.createOscillator()
-  oscillator.connect(output)
-  oscillator.frequency.value = getFrequency(id)
-  oscillator.type = 2
-  oscillator.start(time)
-  onNotes[id] = oscillator
-}
-function noteOff(time, id){
-  if (onNotes[id]){
-    console.log('off', time, id)
-    onNotes[id].stop(time)
-    onNotes[id] = null
-  }
-}
-function getFrequency(id){
-  return 440 * Math.pow(2, (id - 69.0) / 12.0)
-}
-
-bopper.setTempo(120)
-bopper.start()
+var ditty = Ditty()
 ```
 
-To run the example `npm install && npm install -g beefy` then `beefy example.js` and navigate to `http://localhost:9966/`
+### Ditty()
+
+Creates a realtime-transform stream. Pipe in [schedule events](https://github.com/mmckegg/bopper) and stream out the looped events in `audioContext.currentTime` coordinate space.
+
+```js
+var Bopper = require('bopper')
+var audioContext = new AudioContext()
+var scheduler = Bopper(audioContext)
+
+schedule.pipe(ditty).on('data', function(data){
+  // data: id, event (start or stop), time, position, args
+  if (data.event == 'start'){
+    noteOn(data.id, data.time)
+  } else if (data.event == 'stop'){
+    noteOff(data.id, data.time)
+  }
+})
+```
+
+### ditty.set(id, events[, loopLength=8])
+
+Schedule a set of start/stop `events` for the given `id`. This will override any loop already set on this `id`.
+
+**`events` is an array of arrays:**
+
+```js
+[
+  [beatPosition, length, args...],
+  [beatPosition, length, args...],
+  ...
+]
+```
+
+```js
+// schedule a C -> F -> G -> F midi sequence
+
+ditty.set(60, [ // midi C
+  [0, 0.9], [1, 0.9]
+], 8)
+
+ditty.set(65, [ // midi F
+  [2.0, 0.9], [3.0, 0.9], [5.5, 0.4], [6.5, 0.4], [7.0, 0.4], [7.5, 0.4],
+], 8)
+
+ditty.set(67, [ // midi G
+  [4.0, 0.4], [5.0, 0.4]
+], 8)
+```
+
+### ditty.get(id)
+
+Returns the event sequence as `set`.
+
+### ditty.getLength(id)
+
+Returns the `loopLength` as specified for `set`.
+
+### ditty.on('change', function(id))
+
+Whenever a loop is `set` or `removed`, the `'change'` event is emitted with the `id` of the loop that changed.
+
+## Example
+
+To run the example `npm install && npm install --global beefy` then `beefy example.js` and navigate to `http://localhost:9966/`

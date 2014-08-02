@@ -1,10 +1,10 @@
 {
   "name": "ditty",
   "version": "1.2.0",
-  "description": "Schedule Web Audio events for a midi loop sequence using bopper clock source.",
+  "description": "Schedule a looped sequence of Web Audio events using bopper clock source.",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "tape test/*.js"
   },
   "repository": {
     "type": "git",
@@ -12,14 +12,20 @@
   },
   "keywords": [
     "midi",
+    "events",
+    "time",
+    "beats",
+    "loop",
+    "waapi",
+    "player",
+    "timeline",
+    "sequence",
     "looper",
+    "audio",
     "web audio"
   ],
-  "dependencies": {
-    "through": "~2.3.4"
-  },
   "devDependencies": {
-    "bopper": "~0.2"
+    "bopper": "^2.0.0"
   },
   "author": "Matt McKegg",
   "license": "MIT"
