@@ -23,12 +23,19 @@ test(function(t){
   t.same(testSchedule(ditty, {
     from: 6+8, to: 8+8, time: 6+8, beatDuration: 1
   }), [ 
-    { id: 65, event: 'start', position: 14.5, args: [], time: 14.5 },
-    { id: 65, event: 'stop', position: 14.9, args: [], time: 14.9 },
-    { id: 65, event: 'start', position: 15, args: [], time: 15 },
-    { id: 65, event: 'stop', position: 15.4, args: [], time: 15.4 },
-    { id: 65, event: 'start', position: 15.5, args: [], time: 15.5 }
+    { args: [], event: 'stop', id: 60, position: 0.9, time: 0.9000000000000004 }, 
+    { args: [], event: 'start', id: 65, position: 14.5, time: 14.5 }, 
+    { args: [], event: 'stop', id: 65, position: 14.9, time: 14.9 }, 
+    { args: [], event: 'start', id: 65, position: 15, time: 15 }, 
+    { args: [], event: 'stop', id: 65, position: 15.4, time: 15.4 }, 
+    { args: [], event: 'start', id: 65, position: 15.5, time: 15.5 } 
   ])
+
+  ditty.set(65, null)
+
+  t.same(testSchedule(ditty, {
+    from: 6, to: 7, time: 6, beatDuration: 1
+  }), [])
 
   t.end()
 })

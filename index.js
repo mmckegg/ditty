@@ -35,9 +35,9 @@ proto.set = function(id, events, length){
     state.loops[id] = events
     state.lengths[id] = length || 8
   } else {
-    var index = ids.indexOf(id)
+    var index = state.ids.indexOf(id)
     if (~index){
-      ids.splice(index, 1)
+      state.ids.splice(index, 1)
     }
     state.loops[id] = null
   }
