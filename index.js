@@ -41,7 +41,18 @@ proto.set = function(id, events, length){
     }
     state.loops[id] = null
   }
-  this.emit('change', id)
+
+  if (state.loops[id]){
+    this.emit('change', {
+      id: id,
+      events: state.loops[id],
+      length: state.lengths[id]
+    })
+  } else {
+    this.emit('change', {
+      id: id
+    })
+  }
 }
 
 proto.get = function(id){
@@ -50,6 +61,28 @@ proto.get = function(id){
 
 proto.getLength = function(id){
   return this._state.lengths[id]
+}
+
+proto.getIds = function(){
+  return this._state.ids
+}
+
+proto.getDescriptors = function(){
+  var state = this._state
+  var result = []
+  for (var i=0;i<state.ids.length;i++){
+    var id = state.ids[i]
+    result.push({
+      id: id, 
+      length: state.lengths[id], 
+      events: state.loops[id]
+    })
+  }
+  return result
+}
+
+proto.update = function(descriptor){
+  this.set(descriptor.id, descriptor.events, descriptor.length)
 }
 
 proto.push = function(data){

@@ -75,9 +75,17 @@ Returns the event sequence as `set`.
 
 Returns the `loopLength` as specified for `set`.
 
-### ditty.on('change', function(id))
+### ditty.getDescriptors()
 
-Whenever a loop is `set` or `removed`, the `'change'` event is emitted with the `id` of the loop that changed.
+Returns an array of objects describing the state of all loops.
+
+### ditty.update(descriptor)
+
+Push a loop descriptor in to restore the state of the given loop at `descriptor.id`.
+
+### ditty.on('change', function(descriptor))
+
+Whenever a loop is updated, the `'change'` event is emitted with the new loop descriptor (`id`, `events`, `length`).
 
 ## Example
 
