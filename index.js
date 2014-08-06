@@ -1,144 +1,181 @@
-var Through = require('through')
+module.exports = Ditty
 
-module.exports = function(clock){
+var Stream = require('stream')
+var inherits = require('util').inherits
 
-  var playback = {notes: [], length: 8}
+function Ditty(){
 
-  var offNotes = []
-  var onNotes = []
+  if (!(this instanceof Ditty)){
+    return new Ditty()
+  }
 
-  var immediateNotes = []
+  Stream.call(this)
 
-  var offset = 0
+  this.readable = true
+  this.writable = true
 
+  this._state = {
+    loops: {},
+    lengths: {},
+    ids: [],
+    queue: []
+  }
+}
 
-  clock.on('data', function(schedule){
+inherits(Ditty, Stream)
 
-    if (immediateNotes.length){
-      immediateNotes.forEach(function(note){
-        ditty.queue({
-          time: schedule.time,
-          data: noteWithPosition(note, schedule.from)
+var proto = Ditty.prototype
+
+proto.set = function(id, events, length){
+  var state = this._state
+  if (events){
+    if (!state.loops[id]){
+      state.ids.push(id)
+    }
+    state.loops[id] = events
+    state.lengths[id] = length || 8
+  } else {
+    var index = state.ids.indexOf(id)
+    if (~index){
+      state.ids.splice(index, 1)
+    }
+    state.loops[id] = null
+  }
+
+  if (state.loops[id]){
+    this.emit('change', {
+      id: id,
+      events: state.loops[id],
+      length: state.lengths[id]
+    })
+  } else {
+    this.emit('change', {
+      id: id
+    })
+  }
+}
+
+proto.get = function(id){
+  return this._state.loops[id]
+}
+
+proto.getLength = function(id){
+  return this._state.lengths[id]
+}
+
+proto.getIds = function(){
+  return this._state.ids
+}
+
+proto.getDescriptors = function(){
+  var state = this._state
+  var result = []
+  for (var i=0;i<state.ids.length;i++){
+    var id = state.ids[i]
+    result.push({
+      id: id, 
+      length: state.lengths[id], 
+      events: state.loops[id]
+    })
+  }
+  return result
+}
+
+proto.update = function(descriptor){
+  this.set(descriptor.id, descriptor.events, descriptor.length)
+}
+
+proto.push = function(data){
+  this.emit('data', data)
+}
+
+proto.write = function(obj){
+  this._transform(obj)
+}
+
+proto._transform = function(obj){
+  var state = this._state
+  var from = obj.from
+  var to = obj.to
+  var time = obj.time
+  var endTime = obj.time + obj.duration
+  var beatDuration = obj.beatDuration
+  var ids = state.ids
+  var queue = state.queue
+  var localQueue = []
+
+  for (var i=queue.length-1;i>=0;i--){
+    var item = queue[i]
+    if (to > item.position){
+      var delta = (item.position - from) * beatDuration
+      item.time = time + delta
+      queue.splice(i, 1)
+      this.push(item)
+    }
+  }
+
+  for (var i=0;i<ids.length;i++){
+
+    var id = ids[i]
+    var events = state.loops[id]
+    var loopLength = state.lengths[id]
+
+    for (var j=0;j<events.length;j++){
+
+      var event = events[j]
+      var startPosition = getAbsolutePosition(event[0], from, loopLength)
+      var endPosition = startPosition + event[1]
+
+      if (startPosition >= from && startPosition < to){
+
+        var delta = (startPosition - from) * beatDuration
+        var duration = event[1] * beatDuration
+        var startTime = time + delta
+        var endTime = startTime + duration
+        
+        localQueue.push({
+          id: id,
+          event: 'start',
+          position: startPosition,
+          args: event.slice(4),
+          time: startTime
         })
-      })
-      immediateNotes = []
-    }
 
-    var notes = []
+        localQueue.push({
+          id: id,
+          event: 'stop',
+          position: endPosition,
+          args: event.slice(4),
+          time: endTime
+        })
 
-    offNotes = offNotes.filter(function(note){
-      if (note[3]>=schedule.from && note[3]<schedule.to){
-        notes.push(note)
-      } else {
-        return true
       }
-    })
-
-    playback.notes.forEach(function(note){
-      var position = getAbsolutePosition(note[3], schedule.from+offset, playback.length) - offset
-      if (position>=schedule.from && position<schedule.to){        
-        notes.push(noteWithPosition(note, position))
-        var offNote = getOffNote(note, position+note[4])
-        if (offNote[3]<schedule.to){
-          notes.push(offNote)
-        } else {
-          offNotes.push(offNote)
-        }
-      }
-    })
-
-    notes.sort(compareNotes).forEach(function(note){
-      var delta = note[3] - schedule.from
-      ditty.queue({
-        time: schedule.time + (delta*schedule.beatDuration),
-        data: note 
-      })
-    })
-
-  })
-
-  var ditty = Through(function(data){
-    ditty.setPlayback(data.notes, data.length)
-  })
-
-  ditty.setOffset = function(value){
-    value = parseFloat(value) || 0
-    if (offset !== value){
-      offset = value
-      ditty.emit('offset', value)
     }
   }
 
-  ditty.getOffset = function(){
-    return offset
+  // ensure events stream in time sequence
+  localQueue.sort(compare)
+  for (var i=0;i<localQueue.length;i++){
+    var item = localQueue[i]
+    if (endTime > item.time){
+      this.push(item)
+    } else {
+      // queue event for later
+      queue.push(item)
+    }
   }
 
-  ditty.getPlayback = function(){
-    return playback
-  }
-
-  ditty.clear = function(){
-    ditty.setPlayback([])
-  }
-
-  ditty.setPlayback = function(notes, length){
-    notes = notes || []
-    playback = {notes: notes, length: length || playback.length}
-    //turnOffUnused()
-    ditty.emit('change', playback)
-  }
-
-  ditty.turnOffAllNotes = function(){
-    immediateNotes = offNotes
-    offNotes = []
-  }
-
-  function turnOffUnused(notes){
-    offNotes = offNotes.filter(function(note){
-      if (hasNote(note)){
-        return true
-      } else {
-        immediateNotes.push(note)
-      }
-    })
-  }
-
-  function hasNote(a){
-    return playback.notes.some(function(b){ 
-      return isNote(a,b) 
-    })
-  }
-
-  return ditty
+  //cb()
 }
 
-function inRange(note, from, to, length){
-  var position = getAbsolutePosition(note[3], from, length)
-  return (position>=from && position<to)
-}
-
-function compareNotes(a,b){
-  return a[3]-b[3] || a[2]-b[2]
-}
-
-function getOffNote(note, position){
-  return [note[0], note[1], 0, position]
-}
-
-function noteWithPosition(note, position){
-  return [note[0], note[1], note[2], position]
-}
-
-function isNote(a, b){
-  return a[0] == b[0] && a[1] == b[1]
+function compare(a,b){
+  return a.time-b.time
 }
 
 function getAbsolutePosition(pos, start, length){
   pos = pos % length
-
   var micro = start % length
   var position = start+pos-micro
-
   if (position < start){
     return position + length
   } else {
