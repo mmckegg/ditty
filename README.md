@@ -3,6 +3,8 @@ ditty
 
 Schedule a looped sequence of [Web Audio](https://developer.mozilla.org/en-US/docs/Web/API/Web_Audio_API) events using [bopper](https://github.com/mmckegg/bopper) clock source.
 
+You can pipe the output through [soundbank-trigger](https://github.com) if you want to use with [soundbank](https://github.com/mmckegg/soundbank).
+
 **BREAKING CHANGES:** The API has changed significantly in the version 2 release. Now supports multiple loop channels with differing lengths.
 
 ## Install via [npm](https://npmjs.org/packages/ditty)
