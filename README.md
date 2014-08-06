@@ -20,7 +20,7 @@ var ditty = Ditty()
 
 ### Ditty()
 
-Creates a realtime-transform stream. Pipe in [schedule events](https://github.com/mmckegg/bopper) and stream out the looped events in `audioContext.currentTime` coordinate space.
+Creates a realtime-transform stream. Pipe in [schedule events](https://github.com/mmckegg/bopper) and stream out the looped events added to the input `schedule.time`.
 
 ```js
 var Bopper = require('bopper')
@@ -35,6 +35,28 @@ schedule.pipe(ditty).on('data', function(data){
     noteOff(data.id, data.time)
   }
 })
+```
+
+**Input:**
+
+```js
+{
+  from: 0,
+  to: 1.0,
+  time: audioContext.currentTime,
+  beatLength: tempo / 60
+}
+``
+
+**Output:**
+
+```js
+{
+  id: 'C',
+  position: 0.5, // preserved from ditty.set
+  event: 'start', // or 'stop' for the off note
+  time: schedule.time + delta
+}
 ```
 
 ### ditty.set(id, events[, loopLength=8])
