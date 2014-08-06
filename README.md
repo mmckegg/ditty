@@ -46,7 +46,7 @@ schedule.pipe(ditty).on('data', function(data){
   time: audioContext.currentTime,
   beatLength: tempo / 60
 }
-``
+```
 
 **Output:**
 
