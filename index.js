@@ -72,11 +72,13 @@ proto.getDescriptors = function(){
   var result = []
   for (var i=0;i<state.ids.length;i++){
     var id = state.ids[i]
-    result.push({
-      id: id, 
-      length: state.lengths[id], 
-      events: state.loops[id]
-    })
+    if (state.loops[id]){
+      result.push({
+        id: id, 
+        length: state.lengths[id], 
+        events: state.loops[id]
+      })
+    }
   }
   return result
 }
