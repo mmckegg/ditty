@@ -10,7 +10,7 @@ var ditty = Ditty()
 window.scheduler = scheduler
 
 scheduler.pipe(ditty).on('data', function(data){
-  // event: id, event (start or stop), time, position, args
+  // data: id, event (start or stop), time, position, args
   if (data.event == 'start'){
     noteOn(data.time, data.id, data.args[0])
   } else if (data.event == 'stop') {
