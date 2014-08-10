@@ -7,7 +7,7 @@ You can pipe the output through [soundbank-trigger](https://github.com) if you w
 
 **BREAKING CHANGES:** The API has changed significantly in the version 2 release. Now supports multiple loop channels with differing lengths.
 
-## Install via [npm](https://npmjs.org/packages/ditty)
+## Install via [npm](https://npmjs.org/package/ditty)
 
 ```bash
 $ npm install ditty
