@@ -31,11 +31,14 @@ test(function(t){
     { args: [], event: 'start', id: 65, position: 15.5, time: 15.5 } 
   ])
 
+  // test immediate terminate loop removed
   ditty.set(65, null)
 
   t.same(testSchedule(ditty, {
     from: 6, to: 7, time: 6, beatDuration: 1
-  }), [])
+  }), [
+    { args: [], event: 'stop', id: 65, position: 15.9, time: 6 }
+  ])
 
   t.end()
 })

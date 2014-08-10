@@ -108,9 +108,14 @@ proto._transform = function(obj){
 
   for (var i=queue.length-1;i>=0;i--){
     var item = queue[i]
-    if (to > item.position){
-      var delta = (item.position - from) * beatDuration
-      item.time = time + delta
+    if (to > item.position || shouldSendImmediately(item, state.loops[item.id])){
+      if (to > item.position){
+        var delta = (item.position - from) * beatDuration
+        item.time = time + delta
+      } else {
+        item.time = time
+        item.position = from
+      }
       queue.splice(i, 1)
       this.push(item)
     }
@@ -183,4 +188,8 @@ function getAbsolutePosition(pos, start, length){
   } else {
     return position
   }
+}
+
+function shouldSendImmediately(message, loop){
+  return message.event === 'stop' && (!loop || !loop.length)
 }
