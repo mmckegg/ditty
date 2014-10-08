@@ -100,7 +100,7 @@ proto._transform = function(obj){
   var from = obj.from
   var to = obj.to
   var time = obj.time
-  var endTime = obj.time + obj.duration
+  var nextTime = obj.time + obj.duration
   var beatDuration = obj.beatDuration
   var ids = state.ids
   var queue = state.queue
@@ -164,15 +164,13 @@ proto._transform = function(obj){
   localQueue.sort(compare)
   for (var i=0;i<localQueue.length;i++){
     var item = localQueue[i]
-    if (endTime > item.time){
+    if (item.time < nextTime){
       this.push(item)
     } else {
       // queue event for later
       queue.push(item)
     }
   }
-
-  //cb()
 }
 
 function compare(a,b){
