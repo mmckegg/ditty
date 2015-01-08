@@ -96,6 +96,9 @@ proto.write = function(obj){
 }
 
 proto._transform = function(obj){
+  var begin = window.performance.now()
+  var endAt = begin + (obj.duration * 900)
+
   var state = this._state
   var from = obj.from
   var to = obj.to
@@ -155,7 +158,6 @@ proto._transform = function(obj){
           args: event.slice(4),
           time: endTime
         })
-
       }
     }
   }
@@ -165,7 +167,9 @@ proto._transform = function(obj){
   for (var i=0;i<localQueue.length;i++){
     var item = localQueue[i]
     if (item.time < nextTime){
-      this.push(item)
+      if (window.performance.now() < endAt){
+        this.push(item)
+      }
     } else {
       // queue event for later
       queue.push(item)
