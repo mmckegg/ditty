@@ -147,7 +147,7 @@ proto._transform = function(obj){
           id: id,
           event: 'start',
           position: startPosition,
-          args: event.slice(4),
+          args: event.slice(2),
           time: startTime
         })
 
@@ -155,7 +155,7 @@ proto._transform = function(obj){
           id: id,
           event: 'stop',
           position: endPosition,
-          args: event.slice(4),
+          args: event.slice(2),
           time: endTime
         })
       }
