@@ -1,6 +1,6 @@
 {
   "name": "ditty",
-  "version": "2.5.0",
+  "version": "2.6.0",
   "description": "Schedule a looped sequence of Web Audio events using bopper clock source.",
   "main": "index.js",
   "scripts": {
